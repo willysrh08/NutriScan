@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriScan AI | Deteksi Nutrisi dari Gambar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --hover-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--gray-light);
+            color: var(--gray);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 0 2.5rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Deteksi Tab */
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .upload-card, .results-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .upload-card:hover, .results-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .upload-area {
+            padding: 2.5rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.drag-over {
+            background-color: rgba(37, 99, 235, 0.05);
+            border-color: var(--primary);
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .upload-text h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .upload-text p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .file-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        /* Image Preview (Tanpa Bounding Box) */
+        .image-preview-container {
+            margin-top: 1.5rem;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #previewImage {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .detected-items-count {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            z-index: 10;
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .ai-loader {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+
+        .ai-loader::before,
+        .ai-loader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+        }
+
+        .ai-loader::before {
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        .ai-loader::after {
+            border-bottom-color: var(--secondary);
+            animation: spinReverse 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spinReverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
+        /* Nutrition Results */
+        .nutrition-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detected-food {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .detected-food span {
+            color: var(--primary);
+        }
+
+        /* Size Badge (Pengganti Confidence) */
+        .size-badge {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Nutrition Grid */
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .nutrition-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nutrition-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .nutrition-item {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .nutrition-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+            background: white;
+        }
+
+        .nutrient-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nutrient-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .nutrient-name {
+            font-size: 1rem;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .nutrient-unit {
+            font-size: 0.875rem;
+            color: var(--gray-light);
+            font-weight: 500;
+        }
+
+        /* Food Selection Tabs */
+        .food-selection-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            overflow-x: auto;
+        }
+
+        .food-tab {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .food-tab:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+            color: var(--primary);
+        }
+
+        .food-tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .food-tab-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Total Nutrition Summary */
+        .total-nutrition {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+
+        .total-nutrition h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .total-nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .total-nutrition-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .total-nutrition-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .total-nutrient {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .total-nutrient-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .total-nutrient-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        /* History Tab */
+        .history-container {
+            padding: 2rem 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        /* History Grid */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* History Card */
+        .history-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid var(--gray-light);
+            /* Tidak perlu gambar, jadi tingginya ditentukan konten */
+        }
+
+        .history-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        /* Hapus .history-image-container */
+
+        .history-content {
+            padding: 1.5rem;
+        }
+
+        .history-food-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .history-date {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-date i {
+            font-size: 0.8rem;
+        }
+
+        /* Nutrition Summary */
+        .history-nutrition-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .history-nutrient {
+            text-align: center;
+        }
+
+        .history-nutrient-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .history-nutrient-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* History Actions */
+        .history-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        .action-btn:hover {
+            color: var(--primary-dark);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .action-btn.delete-btn {
+            color: var(--error);
+        }
+
+        .action-btn.delete-btn:hover {
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+
+        /* Empty History */
+        .empty-history {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px dashed var(--gray-light);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 0;
+            border-top: 1px solid var(--gray-light);
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.875rem;
+            margin-top: 3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .tab-btn {
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .history-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .history-nutrition-summary {
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+            
+            .history-nutrient-value {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Utility */
+        .hidden {
+            display: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mt-3 {
+            margin-top: 1.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <span>NutriScan AI</span>
+                </div>
+                
+                <nav class="nav-links">
+                    <a href="#" class="nav-link active" data-tab="deteksi">Deteksi</a>
+                    <a href="#" class="nav-link" data-tab="riwayat">Riwayat</a>
+                </nav>
+                
+                <div class="user-actions">
+                    <button class="btn-outline" id="loginBtn">
+                        <i class="fas fa-user-circle"></i> Masuk
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Deteksi Nutrisi Makanan dengan Kecerdasan Buatan</h1>
+            <p>Unggah foto makanan Anda dan dapatkan analisis nutrisi lengkap dalam hitungan detik.</p>
+            <p>Dukung multi-detection: Deteksi beberapa makanan dalam satu gambar!</p>
+        </div>
+    </section>
+
+    <div class="tab-navigation">
+        <button class="tab-btn active" data-tab="deteksi">
+            <i class="fas fa-camera"></i> Deteksi Nutrisi
+        </button>
+        <button class="tab-btn" data-tab="riwayat">
+            <i class="fas fa-history"></i> Riwayat Analisis
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="tab-content active" id="deteksi-tab">
+            <div class="app-container">
+                <div class="upload-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h2>Unggah Foto Makanan</h2>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        
+                        <div class="upload-text">
+                            <h3>Seret & Jatuhkan Gambar</h3>
+                            <p>atau klik untuk memilih file dari komputer</p>
+                            <button class="btn-primary" id="uploadBtn">
+                                <i class="fas"></i> Pilih Gambar
+                            </button>
+                        </div>
+                        
+                        <div class="file-info">
+                            <p>Format yang didukung: JPG, PNG, WEBP, GIF</p>
+                            <p>Ukuran maksimum: 10MB</p>
+                            <p><i class="fas fa-bullseye"></i> Mendukung multi-object detection</p>
+                        </div>
+                    </div>
+                    
+                    <div class="image-preview-container hidden" id="imagePreviewContainer">
+                        <div class="detected-items-count" id="detectedItemsCount">
+                            <i class="fas fa-utensils"></i> <span id="detectedCount">0</span> makanan terdeteksi
+                        </div>
+                        <img src="" alt="Preview Gambar" id="previewImage">
+                    </div>
+                    
+                    <div class="loading-state" id="loadingState">
+                        <div class="ai-loader"></div>
+                        <h3>Menganalisis Gambar...</h3>
+                    </div>
+                    
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
+                </div>
+                
+                <div class="results-card">
+                    <div class="food-selection-tabs hidden" id="foodSelectionTabs">
+                        </div>
+                    
+                    <div class="nutrition-header">
+                        <div class="detected-food">
+                            Makanan: <span id="foodName">-</span>
+                        </div>
+                        <div class="size-badge" id="sizeBadge">
+                            Ukuran: <span id="sizeDisplay">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="nutrition-grid" id="nutritionGrid">
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="nutrient-value" id="calories">-</div>
+                            <div class="nutrient-name">Kalori</div>
+                            <div class="nutrient-unit">kkal</div>
+                        </div>
+                        
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-bread-slice"></i>
+                            </div>
+                            <div class="nutrient-value" id="carbs">-</div>
+                            <div class="nutrient-name">Karbohidrat</div>
+                            <div class="nutrient-unit">gram</div>
+                        </div>
+                        
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-drumstick-bite"></i>
+                            </div>
+                            <div class="nutrient-value" id="protein">-</div>
+                            <div class="nutrient-name">Protein</div>
+                            <div class="nutrient-unit">gram</div>
+                        </div>
+                        
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-oil-can"></i>
+                            </div>
+                            <div class="nutrient-value" id="fat">-</div>
+                            <div class="nutrient-name">Lemak</div>
+                            <div class="nutrient-unit">gram</div>
+                        </div>
+                        
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="nutrient-value" id="fiber">-</div>
+                            <div class="nutrient-name">Serat</div>
+                            <div class="nutrient-unit">gram</div>
+                        </div>
+                        
+                        <div class="nutrition-item">
+                            <div class="nutrient-icon">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <div class="nutrient-value" id="sugar">-</div>
+                            <div class="nutrient-name">Gula</div>
+                            <div class="nutrient-unit">gram</div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-nutrition hidden" id="totalNutrition">
+                        <h3><i class="fas fa-calculator"></i> Total Nutrisi (Semua Makanan)</h3>
+                        <div class="total-nutrition-grid" id="totalNutritionGrid">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="riwayat-tab">
+            <div class="history-container">
+                <div class="history-header">
+                    <h2 class="history-title">Riwayat Analisis</h2>
+                    <div class="history-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalAnalyses">0</div>
+                            <div class="stat-label">Total Analisis</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="avgCalories">0</div>
+                            <div class="stat-label">Rata-rata Kalori</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="last7Days">0</div>
+                            <div class="stat-label">7 Hari Terakhir</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history-grid" id="historyGrid">
+                    </div>
+                
+                <div class="empty-history hidden" id="emptyHistory">
+                    <div class="empty-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="empty-title">Belum Ada Riwayat Analisis</h3>
+                    <p class="empty-text">Riwayat akan muncul setelah kamu kirim makananmu!</p> 
+                    <button class="btn-primary" id="startDetectionBtn">
+                        <i class="fas fa-camera"></i> Mulai Deteksi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 NutriScan AI. Semua hak dilindungi. | Powered by YOLOv8s & Flask | Analisis Nutrisi AI</p>
+        </div>
+    </footer>
+
+    <script>
+        // Elemen DOM
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const detectedItemsCount = document.getElementById('detectedItemsCount');
+        const detectedCount = document.getElementById('detectedCount');
+        const loadingState = document.getElementById('loadingState');
+        const historyGrid = document.getElementById('historyGrid');
+        const emptyHistory = document.getElementById('emptyHistory');
+        const startDetectionBtn = document.getElementById('startDetectionBtn');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const loginBtn = document.getElementById('loginBtn');
+        const foodSelectionTabs = document.getElementById('foodSelectionTabs');
+        const totalNutrition = document.getElementById('totalNutrition');
+        const totalNutritionGrid = document.getElementById('totalNutritionGrid');
+        
+        // Stats elements
+        const totalAnalysesEl = document.getElementById('totalAnalyses');
+        const avgCaloriesEl = document.getElementById('avgCalories');
+        const last7DaysEl = document.getElementById('last7Days');
+        
+        // Variabel state
+        let analysisHistory = [];
+        let currentDetectedFoods = [];
+        let selectedFoodIndex = 0;
+        
+        // Inisialisasi aplikasi
+        initializeApp();
+        
+        function initializeApp() {
+            // 1. Hapus demo history
+            loadHistory();
+            
+            // 2. Tampilkan data kosong saat startup
+            setInitialDisplay();
+            
+            setupEventListeners();
+            
+            // Update statistik
+            updateStats();
+            
+            // Render riwayat
+            renderHistory();
+        }
+        
+        // Fungsi untuk menampilkan data awal "-"
+        function setInitialDisplay() {
+            const emptyFood = {
+                name: '-',
+                size: '-', // Properti baru untuk ukuran
+                calories: '-',
+                carbs: '-',
+                protein: '-',
+                fat: '-',
+                fiber: '-',
+                sugar: '-',
+                confidence: 0 // Biarkan 0 untuk count
+            };
+            displayNutritionDataFromObject(emptyFood);
+            document.getElementById('detectedCount').textContent = 0;
+            foodSelectionTabs.classList.add('hidden');
+            totalNutrition.classList.add('hidden');
+            imagePreviewContainer.classList.add('hidden'); // Sembunyikan preview gambar di awal
+        }
+
+        // 1. Load History (Hapus logika demo)
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('nutriscan_history');
+            
+            if (savedHistory) {
+                analysisHistory = JSON.parse(savedHistory);
+            } else {
+                analysisHistory = []; // Mulai dengan array kosong
+                localStorage.setItem('nutriscan_history', JSON.stringify(analysisHistory));
+            }
+        }
+        
+        // Hapus function createDemoHistory()
+
+        // 6. Update Render History (Hapus Gambar)
+        function renderHistory() {
+            historyGrid.innerHTML = '';
+            
+            if (analysisHistory.length === 0) {
+                emptyHistory.classList.remove('hidden');
+                // Ganti teks sesuai permintaan
+                document.querySelector('#emptyHistory .empty-text').textContent = "Riwayat akan muncul setelah kamu kirim makananmu!"; 
+                return;
+            }
+            
+            emptyHistory.classList.add('hidden');
+            document.querySelector('#emptyHistory .empty-text').textContent = "Mulai dengan mengunggah foto makanan pertama Anda untuk melihat riwayat analisis di sini."; 
+            
+            const sortedHistory = [...analysisHistory].sort((a, b) => b.id - a.id);
+            
+            sortedHistory.forEach(item => {
+                // Gunakan kalori, carbs, protein dari makanan utama untuk summary
+                const mainFood = item.foods ? item.foods[0] : item; // Ambil makanan pertama jika multi-detection
+
+                const historyCard = document.createElement('div');
+                historyCard.className = 'history-card';
+                historyCard.innerHTML = `
+                    <div class="history-content">
+                        <h3 class="history-food-name">${item.name}</h3>
+                        <div class="history-date">
+                            <i class="far fa-calendar"></i> ${item.date} • ${item.time}
+                        </div>
+                        <div class="history-nutrition-summary">
+                            <div class="history-nutrient">
+                                <div class="history-nutrient-value">${Math.round(mainFood.calories) || 0}</div>
+                                <div class="history-nutrient-label">Kalori</div>
+                            </div>
+                            <div class="history-nutrient">
+                                <div class="history-nutrient-value">${Number(mainFood.carbs || 0).toFixed(2)}g</div>
+                                <div class="history-nutrient-label">Karbohidrat</div>
+                            </div>
+                            <div class="history-nutrient">
+                                <div class="history-nutrient-value">${Number(mainFood.protein || 0).toFixed(2)}g</div>
+                                <div class="history-nutrient-label">Protein</div>
+                            </div>
+                        </div>
+                        <div class="history-actions">
+                             <span style="font-size:0.875rem; color:var(--primary); font-weight:600;"><i class="fas fa-balance-scale"></i> Ukuran: ${item.size || '-'}</span>
+                            <button class="action-btn delete-btn delete-item" data-id="${item.id}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                historyGrid.appendChild(historyCard);
+            });
+            
+            // Tambahkan event listener untuk tombol di kartu riwayat
+            document.querySelectorAll('.view-details').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.getAttribute('data-id');
+                    viewHistoryDetails(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-item').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.getAttribute('data-id');
+                    deleteHistoryItem(id);
+                });
+            });
+            
+            // Tambahkan event listener untuk klik kartu (untuk beralih ke tab deteksi)
+            document.querySelectorAll('.history-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const id = this.querySelector('.delete-item').getAttribute('data-id');
+                    viewHistoryDetails(id);
+                    switchToTab('deteksi');
+                });
+            });
+        }
+        
+        function viewHistoryDetails(id) {
+            const item = analysisHistory.find(item => item.id == id);
+            if (!item) return;
+            
+            // Set data detected foods (untuk multi-detection)
+            currentDetectedFoods = item.foods || [item];
+            selectedFoodIndex = 0;
+            
+            // Tampilkan data di tab deteksi
+            displayNutritionDataFromObject(currentDetectedFoods[0]);
+            
+            // Update UI
+            detectedCount.textContent = currentDetectedFoods.length;
+            updateFoodSelectionTabs(currentDetectedFoods);
+            updateTotalNutrition(currentDetectedFoods);
+            
+            // Tampilkan notifikasi
+            showNotification(`Memuat data ${item.name} dari riwayat`, 'success');
+        }
+        
+        function deleteHistoryItem(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus item ini dari riwayat?')) return;
+            
+            analysisHistory = analysisHistory.filter(item => item.id != id);
+            localStorage.setItem('nutriscan_history', JSON.stringify(analysisHistory));
+            
+            renderHistory();
+            updateStats();
+            
+            showNotification('Item berhasil dihapus dari riwayat', 'success');
+        }
+        
+        function updateStats() {
+            totalAnalysesEl.textContent = analysisHistory.length;
+            
+            if (analysisHistory.length > 0) {
+                // Hitung total kalori dari semua makanan di riwayat
+                const allCalories = analysisHistory.reduce((sum, item) => {
+                    const foods = item.foods || [item]; // Handle multi-detection
+                    return sum + foods.reduce((foodSum, food) => foodSum + (food.calories || 0), 0);
+                }, 0);
+
+                const avgCalories = Math.round(allCalories / analysisHistory.length);
+                avgCaloriesEl.textContent = avgCalories;
+                
+                // Hitung analisis 7 hari terakhir
+                const now = Date.now();
+                const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+                const last7DaysCount = analysisHistory.filter(item => item.id >= sevenDaysAgo).length;
+                last7DaysEl.textContent = last7DaysCount;
+            } else {
+                avgCaloriesEl.textContent = '0';
+                last7DaysEl.textContent = '0';
+                totalAnalysesEl.textContent = '0';
+            }
+        }
+        
+        // 1. Fungsi Display Data (Mengganti Akurasi ke Ukuran & Pembulatan)
+        function displayNutritionDataFromObject(food) {
+            // Rounding: Kalori (dibulatkan penuh), Nutrisi Makro (1 angka di belakang koma)
+            const calories = (food.calories === '-') ? '-' : Math.round(food.calories);
+            const carbs = (food.carbs === '-') ? '-' : Number(food.carbs).toFixed(2);
+            const protein = (food.protein === '-') ? '-' : Number(food.protein).toFixed(2);
+            const fat = (food.fat === '-') ? '-' : Number(food.fat).toFixed(2);
+            const fiber = (food.fiber === '-') ? '-' : Number(food.fiber).toFixed(2);
+            const sugar = (food.sugar === '-') ? '-' : Number(food.sugar).toFixed(2);
+
+            document.getElementById('foodName').textContent = food.name;
+            // Mengganti confidenceBadge menjadi sizeBadge dan menampilkan 'size'
+            document.getElementById('sizeDisplay').textContent = food.size || '-';
+            
+            // Update nilai nutrisi utama
+            document.getElementById('calories').textContent = calories;
+            document.getElementById('carbs').textContent = carbs;
+            document.getElementById('protein').textContent = protein;
+            document.getElementById('fat').textContent = fat;
+            document.getElementById('fiber').textContent = fiber;
+            document.getElementById('sugar').textContent = sugar;
+        }
+
+        // Fungsi selectFood
+        function selectFood(index) {
+            selectedFoodIndex = index;
+            
+            // Update active tab
+            document.querySelectorAll('.food-tab').forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Update nutrition display
+            const food = currentDetectedFoods[index];
+            displayNutritionDataFromObject(food);
+        }
+        
+        function updateFoodSelectionTabs(foods) {
+            foodSelectionTabs.innerHTML = '';
+            
+            if (foods.length <= 1) {
+                foodSelectionTabs.classList.add('hidden');
+                return;
+            }
+            
+            foodSelectionTabs.classList.remove('hidden');
+            
+            foods.forEach((food, index) => {
+                const tab = document.createElement('button');
+                tab.className = `food-tab ${index === selectedFoodIndex ? 'active' : ''}`;
+                tab.innerHTML = `
+                    ${food.name}
+                    <span class="food-tab-badge">${index + 1}</span>
+                `;
+                
+                tab.addEventListener('click', () => {
+                    selectFood(index);
+                });
+                
+                foodSelectionTabs.appendChild(tab);
+            });
+        }
+        
+        function calculateTotalNutrition(foods) {
+            const total = {
+                calories: 0,
+                carbs: 0,
+                protein: 0,
+                fat: 0,
+                fiber: 0,
+                sugar: 0
+            };
+            
+            foods.forEach(food => {
+                total.calories += food.calories || 0;
+                total.carbs += food.carbs || 0;
+                total.protein += food.protein || 0;
+                total.fat += food.fat || 0;
+                total.fiber += food.fiber || 0;
+                total.sugar += food.sugar || 0;
+            });
+            
+            return total;
+        }
+        
+        // Fungsi Update Total Nutrisi (dengan pembulatan)
+        function updateTotalNutrition(foods) {
+            if (foods.length <= 1) {
+                totalNutrition.classList.add('hidden');
+                return;
+            }
+            
+            totalNutrition.classList.remove('hidden');
+            
+            const total = calculateTotalNutrition(foods);
+            
+            // Pembulatan
+            const totalCalories = Math.round(total.calories);
+            const totalCarbs = total.carbs.toFixed(2); 
+            const totalProtein = total.protein.toFixed(2); 
+            const totalFat = total.fat.toFixed(2);
+            const totalFiber = total.fiber.toFixed(2);
+            const totalSugar = total.sugar.toFixed(2);
+            
+            totalNutritionGrid.innerHTML = `
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalCalories}</div>
+                    <div class="total-nutrient-label">Total Kalori</div>
+                </div>
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalCarbs}g</div>
+                    <div class="total-nutrient-label">Total Karbohidrat</div>
+                </div>
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalProtein}g</div>
+                    <div class="total-nutrient-label">Total Protein</div>
+                </div>
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalFat}g</div>
+                    <div class="total-nutrient-label">Total Lemak</div>
+                </div>
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalFiber}g</div>
+                    <div class="total-nutrient-label">Total Serat</div>
+                </div>
+                <div class="total-nutrient">
+                    <div class="total-nutrient-value">${totalSugar}g</div>
+                    <div class="total-nutrient-label">Total Gula</div>
+                </div>
+            `;
+        }
+        
+        function addToHistory(foods) {
+            // Untuk kompatibilitas dengan tampilan riwayat yang ada,
+            const firstFood = foods[0];
+            
+            const historyItem = {
+                id: Date.now(),
+                foods: foods,
+                // Tambahkan ukuran dari makanan pertama ke item riwayat utama
+                size: firstFood.size || '-', 
+                
+                date: new Date().toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                }),
+                time: new Date().toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }),
+                isMultiDetection: foods.length > 1,
+                
+                // Isi properti lama untuk kompatibilitas tampilan summary
+                foodKey: firstFood.foodKey,
+                name: firstFood.name + (foods.length > 1 ? ` + ${foods.length - 1} lainnya` : ''),
+                calories: firstFood.calories,
+                carbs: firstFood.carbs,
+                protein: firstFood.protein,
+                // ... (properti nutrisi lainnya)
+            };
+            
+            // Tambahkan ke awal array
+            analysisHistory.unshift(historyItem);
+            
+            // Simpan maksimal 20 item
+            if (analysisHistory.length > 20) {
+                analysisHistory = analysisHistory.slice(0, 20);
+            }
+            
+            // Simpan ke localStorage
+            localStorage.setItem('nutriscan_history', JSON.stringify(analysisHistory));
+            
+            // Update tampilan riwayat dan statistik
+            renderHistory();
+            updateStats();
+            
+            return historyItem;
+        }
+        
+        function processImage(file) {
+            // Validasi file
+            if (!file.type.match('image.*')) {
+                showNotification('Silakan pilih file gambar (JPG, PNG, WEBP, GIF)', 'error');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showNotification('Ukuran file terlalu besar. Maksimum 10MB', 'error');
+                return;
+            }
+            
+            // Baca file sebagai Data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Tampilkan preview gambar
+                previewImage.src = e.target.result;
+                previewImage.onload = function() {
+                    // Setelah gambar dimuat, tampilkan container
+                    imagePreviewContainer.classList.remove('hidden');
+                    
+                    // Reset state
+                    currentDetectedFoods = [];
+                    selectedFoodIndex = 0;
+                    
+                    // Tampilkan loading state
+                    uploadArea.classList.add('hidden');
+                    loadingState.style.display = 'block';
+                    
+                    // --- KIRIM KE BACKEND ---
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    fetch('/detect', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const detectedFoods = data; 
+                        
+                        if (detectedFoods.length === 0) {
+                            showNotification('Tidak ada makanan yang dikenali.', 'error');
+                            setInitialDisplay();
+                            return;
+                        }
+
+                        currentDetectedFoods = detectedFoods;
+                        selectedFoodIndex = 0;
+
+                        // Update UI Count
+                        detectedCount.textContent = detectedFoods.length;
+
+                        // Tampilkan data makanan pertama
+                        const firstFood = detectedFoods[0];
+                        
+                        displayNutritionDataFromObject(firstFood); 
+
+                        updateFoodSelectionTabs(detectedFoods);
+                        updateTotalNutrition(detectedFoods);
+                        
+                        // Tambahkan ke riwayat
+                        addToHistory(detectedFoods);
+
+                        // Sembunyikan loading
+                        loadingState.style.display = 'none';
+                        uploadArea.classList.remove('hidden');
+                        
+                        showNotification(`Berhasil mendeteksi ${detectedFoods.length} makanan!`, 'success');
+                        switchToTab('deteksi');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingState.style.display = 'none';
+                        uploadArea.classList.remove('hidden');
+                        showNotification('Terjadi kesalahan koneksi atau data server AI.', 'error');
+                        setInitialDisplay(); // Reset tampilan ke kosong
+                    });
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function showNotification(message, type = 'success') {
+            // ... (Fungsi showNotification tetap sama)
+            // Buat elemen notifikasi
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            // Warna berdasarkan tipe
+            const bgColor = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--error)' : 'var(--warning)');
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 10px;
+                box-shadow: var(--hover-shadow);
+                z-index: 1000;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transform: translateX(150%);
+                transition: transform 0.4s ease;
+            `;
+            
+            // Icon berdasarkan tipe
+            const icon = type === 'success' ? 'fas fa-check-circle' : (type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle');
+            notification.innerHTML = `<i class="${icon}"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            // Animasi masuk
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Hapus notifikasi setelah 4 detik
+            setTimeout(() => {
+                notification.style.transform = 'translateX(150%)';
+                setTimeout(() => {
+                    if(document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 400);
+            }, 4000);
+        }
+        
+        function switchToTab(tabName) {
+            // Update tab buttons
+            tabBtns.forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update tab contents
+            tabContents.forEach(content => {
+                if (content.id === `${tabName}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // Update nav links
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-tab') === tabName) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+        
+        function setupEventListeners() {
+            // Upload button
+            uploadBtn.addEventListener('click', () => {
+                e.stopPropagation();
+                fileInput.click();
+            });
+            
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    processImage(file);
+                }
+            });
+            
+            // Drag & drop functionality
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    processImage(file);
+                }
+            });
+            
+            // Tab navigation
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.getAttribute('data-tab');
+                    switchToTab(tabName);
+                });
+            });
+            
+            // Nav links
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabName = link.getAttribute('data-tab');
+                    switchToTab(tabName);
+                });
+            });
+            
+            // Start detection button
+            startDetectionBtn.addEventListener('click', () => {
+                switchToTab('deteksi');
+            });
+            
+            // Login button
+            loginBtn.addEventListener('click', () => {
+                showNotification('Fitur login akan segera tersedia', 'info');
+            });
+        }
+    </script>
+</body>
+</html>
